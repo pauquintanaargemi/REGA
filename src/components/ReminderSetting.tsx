@@ -6,12 +6,16 @@ import {
   ReminderTime,
 } from '../storage/settingsStorage';
 import { scheduleDailyReminder } from '../notifications/notifications';
+import { Theme, useTheme } from '../theme/theme';
 
 function pad(n: number): string {
   return n.toString().padStart(2, '0');
 }
 
 export function ReminderSetting() {
+  const theme = useTheme();
+  const styles = makeStyles(theme);
+
   const [time, setTime] = useState<ReminderTime | null>(null);
   const [draft, setDraft] = useState<ReminderTime>({ hour: 20, minute: 0 });
   const [visible, setVisible] = useState(false);
@@ -100,6 +104,9 @@ interface StepperProps {
 }
 
 function Stepper({ label, value, onDecrease, onIncrease }: StepperProps) {
+  const theme = useTheme();
+  const styles = makeStyles(theme);
+
   return (
     <View style={styles.stepper}>
       <Text style={styles.stepperLabel}>{label}</Text>
@@ -116,103 +123,106 @@ function Stepper({ label, value, onDecrease, onIncrease }: StepperProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    marginHorizontal: 20,
-    marginBottom: 8,
-  },
-  rowText: {
-    fontSize: 13,
-    color: '#4CAF50',
-    fontWeight: '600',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    width: 300,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '700',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#1B1B1B',
-  },
-  pickerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  colon: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginHorizontal: 8,
-    marginBottom: 10,
-  },
-  stepper: {
-    alignItems: 'center',
-  },
-  stepperLabel: {
-    fontSize: 12,
-    color: '#777',
-    marginBottom: 6,
-  },
-  stepperControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  stepperButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#EEF6EE',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepperButtonText: {
-    fontSize: 18,
-    color: '#2E7D32',
-    fontWeight: '700',
-  },
-  stepperValue: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1B1B1B',
-    width: 48,
-    textAlign: 'center',
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 24,
-  },
-  actionButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#F0F0F0',
-    marginRight: 8,
-  },
-  saveButton: {
-    backgroundColor: '#4CAF50',
-    marginLeft: 8,
-  },
-  cancelText: {
-    color: '#555',
-    fontWeight: '600',
-  },
-  saveText: {
-    color: '#fff',
-    fontWeight: '700',
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    row: {
+      marginHorizontal: 20,
+      marginBottom: 8,
+    },
+    rowText: {
+      fontSize: 13,
+      color: theme.accent,
+      fontWeight: '600',
+    },
+    overlay: {
+      flex: 1,
+      backgroundColor: theme.overlay,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    card: {
+      backgroundColor: theme.cardBackground,
+      borderRadius: 16,
+      padding: 24,
+      width: 300,
+    },
+    title: {
+      fontSize: 17,
+      fontWeight: '700',
+      marginBottom: 20,
+      textAlign: 'center',
+      color: theme.textPrimary,
+    },
+    pickerRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+    },
+    colon: {
+      fontSize: 24,
+      fontWeight: '700',
+      marginHorizontal: 8,
+      marginBottom: 10,
+      color: theme.textPrimary,
+    },
+    stepper: {
+      alignItems: 'center',
+    },
+    stepperLabel: {
+      fontSize: 12,
+      color: theme.textSecondary,
+      marginBottom: 6,
+    },
+    stepperControls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    stepperButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.accentSubtleBackground,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    stepperButtonText: {
+      fontSize: 18,
+      color: theme.accentSubtleText,
+      fontWeight: '700',
+    },
+    stepperValue: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: theme.textPrimary,
+      width: 48,
+      textAlign: 'center',
+    },
+    actions: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 24,
+    },
+    actionButton: {
+      flex: 1,
+      paddingVertical: 12,
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    cancelButton: {
+      backgroundColor: theme.scheme === 'dark' ? '#2A2A2A' : '#F0F0F0',
+      marginRight: 8,
+    },
+    saveButton: {
+      backgroundColor: theme.accent,
+      marginLeft: 8,
+    },
+    cancelText: {
+      color: theme.textSecondary,
+      fontWeight: '600',
+    },
+    saveText: {
+      color: '#fff',
+      fontWeight: '700',
+    },
+  });
+}

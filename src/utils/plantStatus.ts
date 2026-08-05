@@ -29,10 +29,26 @@ export function daysAgoISODate(days: number): string {
   return `${year}-${month}-${day}`;
 }
 
-export function getPlantStatus(daysSinceContact: number): PlantStatus {
-  if (daysSinceContact <= 5) return 'healthy';
-  if (daysSinceContact <= 15) return 'wilting';
+/**
+ * L'estat és relatiu a la freqüència de contacte que l'usuari ha triat
+ * per a cada persona: sana fins arribar-hi, es marceix fins al doble,
+ * es mor a partir d'aquí.
+ */
+export function getPlantStatus(
+  daysSinceContact: number,
+  frequencyDays: number
+): PlantStatus {
+  if (daysSinceContact <= frequencyDays) return 'healthy';
+  if (daysSinceContact <= frequencyDays * 2) return 'wilting';
   return 'critical';
+}
+
+/** Com més gran, més urgent és retrobar-se amb aquesta persona. */
+export function getUrgencyRatio(
+  daysSinceContact: number,
+  frequencyDays: number
+): number {
+  return daysSinceContact / frequencyDays;
 }
 
 export const PLANT_STATUS_COLOR: Record<PlantStatus, string> = {

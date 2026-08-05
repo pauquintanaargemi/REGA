@@ -17,10 +17,13 @@ import {
   updatePerson,
 } from '../storage/peopleStorage';
 import { confirmAsync, notify } from '../utils/dialogs';
+import { Theme, useTheme } from '../theme/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddPerson'>;
 
 export function AddPersonScreen({ navigation, route }: Props) {
+  const theme = useTheme();
+  const styles = makeStyles(theme);
   const personId = route.params?.personId;
   const isEditing = personId !== undefined;
 
@@ -108,6 +111,7 @@ export function AddPersonScreen({ navigation, route }: Props) {
         value={name}
         onChangeText={setName}
         placeholder="Ex. Anna"
+        placeholderTextColor={theme.textSecondary}
         autoFocus={!isEditing}
       />
 
@@ -117,6 +121,7 @@ export function AddPersonScreen({ navigation, route }: Props) {
         value={frequencyDays}
         onChangeText={setFrequencyDays}
         placeholder="Ex. 7"
+        placeholderTextColor={theme.textSecondary}
         keyboardType="number-pad"
       />
 
@@ -139,58 +144,61 @@ export function AddPersonScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F7F7F5',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1B1B1B',
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#444',
-    marginBottom: 6,
-    marginTop: 12,
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  saveButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 28,
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  deleteButton: {
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  deleteButtonText: {
-    color: '#E53935',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+      padding: 20,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: theme.textPrimary,
+      marginBottom: 20,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.textSecondary,
+      marginBottom: 6,
+      marginTop: 12,
+    },
+    input: {
+      backgroundColor: theme.cardBackground,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+      color: theme.textPrimary,
+    },
+    saveButton: {
+      backgroundColor: theme.accent,
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: 'center',
+      marginTop: 28,
+    },
+    saveButtonDisabled: {
+      opacity: 0.6,
+    },
+    saveButtonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    deleteButton: {
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: 'center',
+      marginTop: 16,
+    },
+    deleteButtonText: {
+      color: '#E53935',
+      fontSize: 15,
+      fontWeight: '600',
+    },
+  });
+}
