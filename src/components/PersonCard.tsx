@@ -12,9 +12,10 @@ import {
 interface Props {
   person: Person;
   onMarkDone: (id: string) => void;
+  onPressPerson: (id: string) => void;
 }
 
-export function PersonCard({ person, onMarkDone }: Props) {
+export function PersonCard({ person, onMarkDone, onPressPerson }: Props) {
   const days = getDaysSinceContact(person.lastContactDate);
   const status = getPlantStatus(days);
   const color = PLANT_STATUS_COLOR[status];
@@ -24,17 +25,22 @@ export function PersonCard({ person, onMarkDone }: Props) {
 
   return (
     <View style={[styles.card, { borderLeftColor: color }]}>
-      <Text style={styles.emoji}>{PLANT_STATUS_EMOJI[status]}</Text>
+      <Pressable
+        style={styles.infoRow}
+        onPress={() => onPressPerson(person.id)}
+      >
+        <Text style={styles.emoji}>{PLANT_STATUS_EMOJI[status]}</Text>
 
-      <View style={styles.info}>
-        <Text style={styles.name}>{person.name}</Text>
-        <View style={styles.statusRow}>
-          <View style={[styles.dot, { backgroundColor: color }]} />
-          <Text style={[styles.statusText, { color }]}>
-            {PLANT_STATUS_LABEL[status]} · {daysLabel}
-          </Text>
+        <View style={styles.info}>
+          <Text style={styles.name}>{person.name}</Text>
+          <View style={styles.statusRow}>
+            <View style={[styles.dot, { backgroundColor: color }]} />
+            <Text style={[styles.statusText, { color }]}>
+              {PLANT_STATUS_LABEL[status]} · {daysLabel}
+            </Text>
+          </View>
         </View>
-      </View>
+      </Pressable>
 
       <Pressable style={styles.button} onPress={() => onMarkDone(person.id)}>
         <Text style={styles.buttonText}>Marcar com a fet</Text>
@@ -58,6 +64,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+  },
+  infoRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   emoji: {
     fontSize: 32,

@@ -1,4 +1,4 @@
 export type RootStackParamList = {
   Garden: undefined;
-  AddPerson: undefined;
+  AddPerson: { personId?: string } | undefined;
 };

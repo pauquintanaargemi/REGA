@@ -24,6 +24,10 @@ export function GardenScreen({ navigation }: Props) {
     setPeople(updated);
   }
 
+  function handlePressPerson(id: string) {
+    navigation.navigate('AddPerson', { personId: id });
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -51,7 +55,11 @@ export function GardenScreen({ navigation }: Props) {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <PersonCard person={item} onMarkDone={handleMarkDone} />
+            <PersonCard
+              person={item}
+              onMarkDone={handleMarkDone}
+              onPressPerson={handlePressPerson}
+            />
           )}
         />
       )}

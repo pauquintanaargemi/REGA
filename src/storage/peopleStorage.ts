@@ -45,3 +45,22 @@ export async function markPersonContactedToday(
   await savePeople(updated);
   return updated;
 }
+
+export async function updatePerson(
+  people: Person[],
+  id: string,
+  changes: { name: string; frequencyDays: number }
+): Promise<Person[]> {
+  const updated = people.map((p) => (p.id === id ? { ...p, ...changes } : p));
+  await savePeople(updated);
+  return updated;
+}
+
+export async function deletePerson(
+  people: Person[],
+  id: string
+): Promise<Person[]> {
+  const updated = people.filter((p) => p.id !== id);
+  await savePeople(updated);
+  return updated;
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,29 +7,56 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { addPerson, loadPeople } from '../storage/peopleStorage';
+import {
+  addPerson,
+  deletePerson,
+  loadPeople,
+  updatePerson,
+} from '../storage/peopleStorage';
+import { confirmAsync, notify } from '../utils/dialogs';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddPerson'>;
 
-export function AddPersonScreen({ navigation }: Props) {
+export function AddPersonScreen({ navigation, route }: Props) {
+  const personId = route.params?.personId;
+  const isEditing = personId !== undefined;
+
   const [name, setName] = useState('');
   const [frequencyDays, setFrequencyDays] = useState('7');
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(isEditing);
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: isEditing ? 'Editar persona' : 'Afegir persona',
+    });
+  }, [navigation, isEditing]);
+
+  useEffect(() => {
+    if (!personId) return;
+    loadPeople().then((people) => {
+      const person = people.find((p) => p.id === personId);
+      if (person) {
+        setName(person.name);
+        setFrequencyDays(String(person.frequencyDays));
+      }
+      setLoading(false);
+    });
+  }, [personId]);
 
   async function handleSave() {
     const trimmedName = name.trim();
     const frequency = parseInt(frequencyDays, 10);
 
     if (!trimmedName) {
-      Alert.alert('Falta el nom', 'Escriu el nom de la persona.');
+      notify('Falta el nom', 'Escriu el nom de la persona.');
       return;
     }
     if (!Number.isFinite(frequency) || frequency <= 0) {
-      Alert.alert(
+      notify(
         'Freqüència no vàlida',
         'Indica cada quants dies vols parlar amb aquesta persona.'
       );
@@ -38,9 +65,32 @@ export function AddPersonScreen({ navigation }: Props) {
 
     setSaving(true);
     const current = await loadPeople();
-    await addPerson(current, trimmedName, frequency);
+    if (isEditing && personId) {
+      await updatePerson(current, personId, {
+        name: trimmedName,
+        frequencyDays: frequency,
+      });
+    } else {
+      await addPerson(current, trimmedName, frequency);
+    }
     setSaving(false);
     navigation.goBack();
+  }
+
+  async function handleDelete() {
+    if (!personId) return;
+    const confirmed = await confirmAsync(
+      'Eliminar persona',
+      `Segur que vols eliminar ${name || 'aquesta persona'} del teu jardí?`
+    );
+    if (!confirmed) return;
+    const current = await loadPeople();
+    await deletePerson(current, personId);
+    navigation.goBack();
+  }
+
+  if (loading) {
+    return <View style={styles.container} />;
   }
 
   return (
@@ -48,7 +98,9 @@ export function AddPersonScreen({ navigation }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.title}>Nova persona</Text>
+      <Text style={styles.title}>
+        {isEditing ? 'Editar persona' : 'Nova persona'}
+      </Text>
 
       <Text style={styles.label}>Nom</Text>
       <TextInput
@@ -56,7 +108,7 @@ export function AddPersonScreen({ navigation }: Props) {
         value={name}
         onChangeText={setName}
         placeholder="Ex. Anna"
-        autoFocus
+        autoFocus={!isEditing}
       />
 
       <Text style={styles.label}>Cada quants dies vols parlar-hi?</Text>
@@ -74,9 +126,15 @@ export function AddPersonScreen({ navigation }: Props) {
         disabled={saving}
       >
         <Text style={styles.saveButtonText}>
-          {saving ? 'Desant…' : 'Afegir al jardí'}
+          {saving ? 'Desant…' : isEditing ? 'Desar canvis' : 'Afegir al jardí'}
         </Text>
       </Pressable>
+
+      {isEditing && (
+        <Pressable style={styles.deleteButton} onPress={handleDelete}>
+          <Text style={styles.deleteButtonText}>Eliminar persona</Text>
+        </Pressable>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -123,5 +181,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  deleteButton: {
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  deleteButtonText: {
+    color: '#E53935',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
