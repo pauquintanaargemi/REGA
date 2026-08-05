@@ -7,4 +7,6 @@ export interface Person {
   lastContactDate: string;
   /** Notes lliures (aniversari, idees de regal, etc.). */
   notes?: string;
+  /** Número de telèfon, per poder trucar directament. */
+  phoneNumber?: string;
 }

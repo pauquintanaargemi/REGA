@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Linking,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -18,6 +19,7 @@ import {
   updatePerson,
 } from '../storage/peopleStorage';
 import { confirmAsync, notify } from '../utils/dialogs';
+import { pickContactFromDevice } from '../utils/contacts';
 import { Theme, useTheme } from '../theme/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddPerson'>;
@@ -31,6 +33,7 @@ export function AddPersonScreen({ navigation, route }: Props) {
   const [name, setName] = useState('');
   const [frequencyDays, setFrequencyDays] = useState('7');
   const [notes, setNotes] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEditing);
 
@@ -48,6 +51,7 @@ export function AddPersonScreen({ navigation, route }: Props) {
         setName(person.name);
         setFrequencyDays(String(person.frequencyDays));
         setNotes(person.notes ?? '');
+        setPhoneNumber(person.phoneNumber ?? '');
       }
       setLoading(false);
     });
@@ -70,6 +74,7 @@ export function AddPersonScreen({ navigation, route }: Props) {
     }
 
     const trimmedNotes = notes.trim();
+    const trimmedPhone = phoneNumber.trim();
     setSaving(true);
     const current = await loadPeople();
     if (isEditing && personId) {
@@ -77,12 +82,30 @@ export function AddPersonScreen({ navigation, route }: Props) {
         name: trimmedName,
         frequencyDays: frequency,
         notes: trimmedNotes,
+        phoneNumber: trimmedPhone,
       });
     } else {
-      await addPerson(current, trimmedName, frequency, trimmedNotes);
+      await addPerson(current, trimmedName, frequency, trimmedNotes, trimmedPhone);
     }
     setSaving(false);
     navigation.goBack();
+  }
+
+  async function handlePickContact() {
+    try {
+      const picked = await pickContactFromDevice();
+      if (!picked) return;
+      if (picked.name) setName(picked.name);
+      if (picked.phoneNumber) setPhoneNumber(picked.phoneNumber);
+    } catch {
+      notify('No s\'ha pogut obrir els contactes', 'Torna-ho a provar més tard.');
+    }
+  }
+
+  function handleCall() {
+    const trimmedPhone = phoneNumber.trim();
+    if (!trimmedPhone) return;
+    Linking.openURL(`tel:${trimmedPhone}`);
   }
 
   async function handleDelete() {
@@ -114,6 +137,14 @@ export function AddPersonScreen({ navigation, route }: Props) {
           {isEditing ? 'Editar persona' : 'Nova persona'}
         </Text>
 
+        {Platform.OS !== 'web' && (
+          <Pressable style={styles.contactButton} onPress={handlePickContact}>
+            <Text style={styles.contactButtonText}>
+              📇 Triar dels contactes
+            </Text>
+          </Pressable>
+        )}
+
         <Text style={styles.label}>Nom</Text>
         <TextInput
           style={styles.input}
@@ -133,6 +164,23 @@ export function AddPersonScreen({ navigation, route }: Props) {
           placeholderTextColor={theme.textSecondary}
           keyboardType="number-pad"
         />
+
+        <Text style={styles.label}>Telèfon (opcional)</Text>
+        <View style={styles.phoneRow}>
+          <TextInput
+            style={[styles.input, styles.phoneInput]}
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            placeholder="Ex. +34 600 000 000"
+            placeholderTextColor={theme.textSecondary}
+            keyboardType="phone-pad"
+          />
+          {phoneNumber.trim().length > 0 && (
+            <Pressable style={styles.callButton} onPress={handleCall}>
+              <Text style={styles.callButtonText}>📞</Text>
+            </Pressable>
+          )}
+        </View>
 
         <Text style={styles.label}>Notes (opcional)</Text>
         <TextInput
@@ -199,6 +247,37 @@ function makeStyles(theme: Theme) {
     },
     notesInput: {
       minHeight: 90,
+    },
+    contactButton: {
+      backgroundColor: theme.accentSubtleBackground,
+      borderRadius: 10,
+      paddingVertical: 12,
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    contactButtonText: {
+      color: theme.accentSubtleText,
+      fontWeight: '600',
+      fontSize: 14,
+    },
+    phoneRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    phoneInput: {
+      flex: 1,
+    },
+    callButton: {
+      marginLeft: 8,
+      width: 46,
+      height: 46,
+      borderRadius: 23,
+      backgroundColor: theme.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    callButtonText: {
+      fontSize: 20,
     },
     saveButton: {
       backgroundColor: theme.accent,

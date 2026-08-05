@@ -15,6 +15,7 @@ import { PersonCard } from '../components/PersonCard';
 import { ReminderSetting } from '../components/ReminderSetting';
 import { UndoSnackbar } from '../components/UndoSnackbar';
 import { GrassWave } from '../components/GrassWave';
+import { SkyDecoration } from '../components/SkyDecoration';
 import { Person } from '../types/person';
 import {
   loadPeople,
@@ -160,6 +161,8 @@ export function GardenScreen({ navigation }: Props) {
           placeholderTextColor={theme.textSecondary}
         />
       )}
+
+      <SkyDecoration />
 
       {people.length === 0 ? (
         <View style={styles.empty}>

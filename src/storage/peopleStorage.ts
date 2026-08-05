@@ -22,7 +22,8 @@ export async function addPerson(
   people: Person[],
   name: string,
   frequencyDays: number,
-  notes?: string
+  notes?: string,
+  phoneNumber?: string
 ): Promise<Person[]> {
   const newPerson: Person = {
     id: Date.now().toString(),
@@ -30,6 +31,7 @@ export async function addPerson(
     frequencyDays,
     lastContactDate: todayISODate(),
     notes: notes || undefined,
+    phoneNumber: phoneNumber || undefined,
   };
   const updated = [...people, newPerson];
   await savePeople(updated);
@@ -58,10 +60,22 @@ export async function markPersonContactedToday(
 export async function updatePerson(
   people: Person[],
   id: string,
-  changes: { name: string; frequencyDays: number; notes?: string }
+  changes: {
+    name: string;
+    frequencyDays: number;
+    notes?: string;
+    phoneNumber?: string;
+  }
 ): Promise<Person[]> {
   const updated = people.map((p) =>
-    p.id === id ? { ...p, ...changes, notes: changes.notes || undefined } : p
+    p.id === id
+      ? {
+          ...p,
+          ...changes,
+          notes: changes.notes || undefined,
+          phoneNumber: changes.phoneNumber || undefined,
+        }
+      : p
   );
   await savePeople(updated);
   return updated;

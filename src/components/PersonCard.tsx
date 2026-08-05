@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View, Pressable } from 'react-native';
+import { Animated, Linking, StyleSheet, Text, View, Pressable } from 'react-native';
 import { Person } from '../types/person';
 import {
   getDaysSinceContact,
@@ -83,6 +83,15 @@ export function PersonCard({
         <Text style={styles.daysText}>{daysLabel}</Text>
       </Pressable>
 
+      {person.phoneNumber && (
+        <Pressable
+          style={styles.callButton}
+          onPress={() => Linking.openURL(`tel:${person.phoneNumber}`)}
+        >
+          <Text style={styles.callButtonText}>📞 Trucar</Text>
+        </Pressable>
+      )}
+
       <Pressable style={styles.button} onPress={() => onMarkDone(person.id)}>
         <Text style={styles.buttonText}>💧 Marcar com a fet</Text>
       </Pressable>
@@ -126,6 +135,19 @@ function makeStyles(theme: Theme) {
       fontSize: 11,
       color: theme.textSecondary,
       marginTop: 2,
+    },
+    callButton: {
+      backgroundColor: theme.accentSubtleBackground,
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+      borderRadius: 20,
+      marginTop: 6,
+    },
+    callButtonText: {
+      color: theme.accentSubtleText,
+      fontWeight: '600',
+      fontSize: 11,
+      textAlign: 'center',
     },
     button: {
       backgroundColor: theme.accentSubtleBackground,

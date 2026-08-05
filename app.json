@@ -30,6 +30,12 @@
     "plugins": [
       "expo-notifications",
       [
+        "expo-contacts",
+        {
+          "contactsPermission": "Rega necessita accedir als contactes perquè puguis triar una persona del teu jardí."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
