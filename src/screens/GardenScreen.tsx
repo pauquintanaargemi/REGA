@@ -3,7 +3,7 @@ import {
   StyleSheet,
   Text,
   View,
-  FlatList,
+  ScrollView,
   Pressable,
   Platform,
   TextInput,
@@ -14,6 +14,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { PersonCard } from '../components/PersonCard';
 import { ReminderSetting } from '../components/ReminderSetting';
 import { UndoSnackbar } from '../components/UndoSnackbar';
+import { GrassWave } from '../components/GrassWave';
 import { Person } from '../types/person';
 import {
   loadPeople,
@@ -26,6 +27,7 @@ import {
   getUrgencyRatio,
   PlantStatus,
 } from '../utils/plantStatus';
+import { chunkIntoRows } from '../utils/gardenLayout';
 import { Theme, useTheme } from '../theme/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Garden'>;
@@ -35,6 +37,8 @@ interface UndoInfo {
   name: string;
   previousDate: string;
 }
+
+const COLUMNS = 2;
 
 export function GardenScreen({ navigation }: Props) {
   const theme = useTheme();
@@ -105,6 +109,11 @@ export function GardenScreen({ navigation }: Props) {
     );
   }, [sortedPeople, query]);
 
+  const rows = useMemo(
+    () => chunkIntoRows(visiblePeople, COLUMNS),
+    [visiblePeople]
+  );
+
   const counts = useMemo(() => {
     const result: Record<PlantStatus, number> = {
       healthy: 0,
@@ -166,21 +175,29 @@ export function GardenScreen({ navigation }: Props) {
           </Text>
         </View>
       ) : (
-        <FlatList
-          data={visiblePeople}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <PersonCard
-              person={item}
-              onMarkDone={handleMarkDone}
-              onPressPerson={handlePressPerson}
-              justMarked={item.id === justMarkedId}
-            />
-          )}
-        />
+        <ScrollView contentContainerStyle={styles.garden}>
+          <GrassWave />
+          {rows.map((row, index) => (
+            <View key={index} style={styles.bedRow}>
+              <View style={styles.plantsRow}>
+                {row.map((person) => (
+                  <PersonCard
+                    key={person.id}
+                    person={person}
+                    onMarkDone={handleMarkDone}
+                    onPressPerson={handlePressPerson}
+                    justMarked={person.id === justMarkedId}
+                  />
+                ))}
+                {row.length < COLUMNS &&
+                  Array.from({ length: COLUMNS - row.length }).map((_, i) => (
+                    <View key={`filler-${i}`} style={styles.filler} />
+                  ))}
+              </View>
+              <View style={styles.soilStrip} />
+            </View>
+          ))}
+        </ScrollView>
       )}
 
       {undoInfo && (
@@ -244,14 +261,29 @@ function makeStyles(theme: Theme) {
       color: theme.textPrimary,
       fontSize: 14,
     },
-    list: {
+    garden: {
       paddingHorizontal: 16,
-      paddingVertical: 8,
       paddingBottom: 80,
     },
-    row: {
-      gap: 12,
-      marginBottom: 12,
+    bedRow: {
+      marginBottom: 22,
+    },
+    plantsRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      paddingBottom: 10,
+    },
+    filler: {
+      flex: 1,
+    },
+    soilStrip: {
+      height: 14,
+      marginTop: -10,
+      marginHorizontal: 10,
+      borderRadius: 8,
+      backgroundColor: theme.soil,
+      borderTopWidth: 3,
+      borderTopColor: theme.soilEdge,
     },
     empty: {
       flex: 1,

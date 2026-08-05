@@ -7,6 +7,7 @@ import {
   PLANT_STATUS_COLOR,
   PLANT_STATUS_LABEL,
 } from '../utils/plantStatus';
+import { getPlantJitter } from '../utils/gardenLayout';
 import { PlantIllustration } from './PlantIllustration';
 import { Theme, useTheme } from '../theme/theme';
 
@@ -26,6 +27,7 @@ export function PersonCard({
   const theme = useTheme();
   const styles = makeStyles(theme);
   const scale = useRef(new Animated.Value(1)).current;
+  const { translateY, rotateDeg } = getPlantJitter(person.id);
 
   const days = getDaysSinceContact(person.lastContactDate);
   const status = getPlantStatus(days, person.frequencyDays);
@@ -51,12 +53,20 @@ export function PersonCard({
   }, [justMarked, scale]);
 
   return (
-    <View style={[styles.card, { borderColor: color }]}>
+    <View style={styles.slot}>
       <Pressable
         style={styles.infoArea}
         onPress={() => onPressPerson(person.id)}
       >
-        <Animated.View style={{ transform: [{ scale }] }}>
+        <Animated.View
+          style={{
+            transform: [
+              { translateY },
+              { rotate: `${rotateDeg}deg` },
+              { scale },
+            ],
+          }}
+        >
           <PlantIllustration status={status} size={56} />
         </Animated.View>
 
@@ -74,7 +84,7 @@ export function PersonCard({
       </Pressable>
 
       <Pressable style={styles.button} onPress={() => onMarkDone(person.id)}>
-        <Text style={styles.buttonText}>Marcar com a fet</Text>
+        <Text style={styles.buttonText}>💧 Marcar com a fet</Text>
       </Pressable>
     </View>
   );
@@ -82,17 +92,9 @@ export function PersonCard({
 
 function makeStyles(theme: Theme) {
   return StyleSheet.create({
-    card: {
+    slot: {
       flex: 1,
-      backgroundColor: theme.cardBackground,
-      borderRadius: 14,
-      borderWidth: 2,
-      padding: 12,
-      shadowColor: '#000',
-      shadowOpacity: theme.scheme === 'dark' ? 0.3 : 0.06,
-      shadowRadius: 4,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 2,
+      alignItems: 'center',
     },
     infoArea: {
       alignItems: 'center',
@@ -101,7 +103,7 @@ function makeStyles(theme: Theme) {
       fontSize: 15,
       fontWeight: '600',
       color: theme.textPrimary,
-      marginTop: 8,
+      marginTop: 6,
       maxWidth: '100%',
     },
     statusRow: {
@@ -127,14 +129,15 @@ function makeStyles(theme: Theme) {
     },
     button: {
       backgroundColor: theme.accentSubtleBackground,
-      paddingVertical: 8,
-      borderRadius: 8,
+      paddingVertical: 7,
+      paddingHorizontal: 10,
+      borderRadius: 20,
       marginTop: 10,
     },
     buttonText: {
       color: theme.accentSubtleText,
       fontWeight: '600',
-      fontSize: 12,
+      fontSize: 11,
       textAlign: 'center',
     },
   });

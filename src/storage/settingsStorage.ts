@@ -18,3 +18,14 @@ export async function loadReminderTime(): Promise<ReminderTime> {
 export async function saveReminderTime(time: ReminderTime): Promise<void> {
   await AsyncStorage.setItem(REMINDER_TIME_KEY, JSON.stringify(time));
 }
+
+const HAS_SEEN_WELCOME_KEY = '@rega/hasSeenWelcome';
+
+export async function getHasSeenWelcome(): Promise<boolean> {
+  const raw = await AsyncStorage.getItem(HAS_SEEN_WELCOME_KEY);
+  return raw === 'true';
+}
+
+export async function setHasSeenWelcome(): Promise<void> {
+  await AsyncStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
+}
