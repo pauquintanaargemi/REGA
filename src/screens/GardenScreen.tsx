@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -13,8 +13,13 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { PersonCard } from '../components/PersonCard';
 import { ReminderSetting } from '../components/ReminderSetting';
+import { UndoSnackbar } from '../components/UndoSnackbar';
 import { Person } from '../types/person';
-import { loadPeople, markPersonContactedToday } from '../storage/peopleStorage';
+import {
+  loadPeople,
+  markPersonContactedToday,
+  setPersonLastContactDate,
+} from '../storage/peopleStorage';
 import {
   getDaysSinceContact,
   getPlantStatus,
@@ -25,6 +30,12 @@ import { Theme, useTheme } from '../theme/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Garden'>;
 
+interface UndoInfo {
+  id: string;
+  name: string;
+  previousDate: string;
+}
+
 export function GardenScreen({ navigation }: Props) {
   const theme = useTheme();
   const styles = makeStyles(theme);
@@ -32,6 +43,8 @@ export function GardenScreen({ navigation }: Props) {
   const [people, setPeople] = useState<Person[]>([]);
   const [query, setQuery] = useState('');
   const [justMarkedId, setJustMarkedId] = useState<string | null>(null);
+  const [undoInfo, setUndoInfo] = useState<UndoInfo | null>(null);
+  const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -40,10 +53,30 @@ export function GardenScreen({ navigation }: Props) {
   );
 
   async function handleMarkDone(id: string) {
+    const person = people.find((p) => p.id === id);
+    if (!person) return;
+
     const updated = await markPersonContactedToday(people, id);
     setPeople(updated);
     setJustMarkedId(id);
     setTimeout(() => setJustMarkedId(null), 600);
+
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    setUndoInfo({ id, name: person.name, previousDate: person.lastContactDate });
+    undoTimeoutRef.current = setTimeout(() => setUndoInfo(null), 4000);
+  }
+
+  async function handleUndo() {
+    if (!undoInfo) return;
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    const current = await loadPeople();
+    const reverted = await setPersonLastContactDate(
+      current,
+      undoInfo.id,
+      undoInfo.previousDate
+    );
+    setPeople(reverted);
+    setUndoInfo(null);
   }
 
   function handlePressPerson(id: string) {
@@ -136,6 +169,8 @@ export function GardenScreen({ navigation }: Props) {
         <FlatList
           data={visiblePeople}
           keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <PersonCard
@@ -145,6 +180,13 @@ export function GardenScreen({ navigation }: Props) {
               justMarked={item.id === justMarkedId}
             />
           )}
+        />
+      )}
+
+      {undoInfo && (
+        <UndoSnackbar
+          message={`${undoInfo.name} marcat com a fet`}
+          onUndo={handleUndo}
         />
       )}
     </View>
@@ -203,8 +245,13 @@ function makeStyles(theme: Theme) {
       fontSize: 14,
     },
     list: {
+      paddingHorizontal: 16,
       paddingVertical: 8,
-      paddingBottom: 24,
+      paddingBottom: 80,
+    },
+    row: {
+      gap: 12,
+      marginBottom: 12,
     },
     empty: {
       flex: 1,

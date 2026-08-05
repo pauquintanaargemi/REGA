@@ -7,6 +7,7 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -29,6 +30,7 @@ export function AddPersonScreen({ navigation, route }: Props) {
 
   const [name, setName] = useState('');
   const [frequencyDays, setFrequencyDays] = useState('7');
+  const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEditing);
 
@@ -45,6 +47,7 @@ export function AddPersonScreen({ navigation, route }: Props) {
       if (person) {
         setName(person.name);
         setFrequencyDays(String(person.frequencyDays));
+        setNotes(person.notes ?? '');
       }
       setLoading(false);
     });
@@ -66,15 +69,17 @@ export function AddPersonScreen({ navigation, route }: Props) {
       return;
     }
 
+    const trimmedNotes = notes.trim();
     setSaving(true);
     const current = await loadPeople();
     if (isEditing && personId) {
       await updatePerson(current, personId, {
         name: trimmedName,
         frequencyDays: frequency,
+        notes: trimmedNotes,
       });
     } else {
-      await addPerson(current, trimmedName, frequency);
+      await addPerson(current, trimmedName, frequency, trimmedNotes);
     }
     setSaving(false);
     navigation.goBack();
@@ -101,45 +106,61 @@ export function AddPersonScreen({ navigation, route }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.title}>
-        {isEditing ? 'Editar persona' : 'Nova persona'}
-      </Text>
-
-      <Text style={styles.label}>Nom</Text>
-      <TextInput
-        style={styles.input}
-        value={name}
-        onChangeText={setName}
-        placeholder="Ex. Anna"
-        placeholderTextColor={theme.textSecondary}
-        autoFocus={!isEditing}
-      />
-
-      <Text style={styles.label}>Cada quants dies vols parlar-hi?</Text>
-      <TextInput
-        style={styles.input}
-        value={frequencyDays}
-        onChangeText={setFrequencyDays}
-        placeholder="Ex. 7"
-        placeholderTextColor={theme.textSecondary}
-        keyboardType="number-pad"
-      />
-
-      <Pressable
-        style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-        onPress={handleSave}
-        disabled={saving}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.saveButtonText}>
-          {saving ? 'Desant…' : isEditing ? 'Desar canvis' : 'Afegir al jardí'}
+        <Text style={styles.title}>
+          {isEditing ? 'Editar persona' : 'Nova persona'}
         </Text>
-      </Pressable>
 
-      {isEditing && (
-        <Pressable style={styles.deleteButton} onPress={handleDelete}>
-          <Text style={styles.deleteButtonText}>Eliminar persona</Text>
+        <Text style={styles.label}>Nom</Text>
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder="Ex. Anna"
+          placeholderTextColor={theme.textSecondary}
+          autoFocus={!isEditing}
+        />
+
+        <Text style={styles.label}>Cada quants dies vols parlar-hi?</Text>
+        <TextInput
+          style={styles.input}
+          value={frequencyDays}
+          onChangeText={setFrequencyDays}
+          placeholder="Ex. 7"
+          placeholderTextColor={theme.textSecondary}
+          keyboardType="number-pad"
+        />
+
+        <Text style={styles.label}>Notes (opcional)</Text>
+        <TextInput
+          style={[styles.input, styles.notesInput]}
+          value={notes}
+          onChangeText={setNotes}
+          placeholder="Aniversari, de què vau parlar, idees de regal…"
+          placeholderTextColor={theme.textSecondary}
+          multiline
+          textAlignVertical="top"
+        />
+
+        <Pressable
+          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+          onPress={handleSave}
+          disabled={saving}
+        >
+          <Text style={styles.saveButtonText}>
+            {saving ? 'Desant…' : isEditing ? 'Desar canvis' : 'Afegir al jardí'}
+          </Text>
         </Pressable>
-      )}
+
+        {isEditing && (
+          <Pressable style={styles.deleteButton} onPress={handleDelete}>
+            <Text style={styles.deleteButtonText}>Eliminar persona</Text>
+          </Pressable>
+        )}
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -149,6 +170,8 @@ function makeStyles(theme: Theme) {
     container: {
       flex: 1,
       backgroundColor: theme.background,
+    },
+    scrollContent: {
       padding: 20,
     },
     title: {
@@ -173,6 +196,9 @@ function makeStyles(theme: Theme) {
       borderWidth: 1,
       borderColor: theme.border,
       color: theme.textPrimary,
+    },
+    notesInput: {
+      minHeight: 90,
     },
     saveButton: {
       backgroundColor: theme.accent,

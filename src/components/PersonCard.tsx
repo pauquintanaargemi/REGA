@@ -51,24 +51,26 @@ export function PersonCard({
   }, [justMarked, scale]);
 
   return (
-    <View style={[styles.card, { borderLeftColor: color }]}>
+    <View style={[styles.card, { borderColor: color }]}>
       <Pressable
-        style={styles.infoRow}
+        style={styles.infoArea}
         onPress={() => onPressPerson(person.id)}
       >
         <Animated.View style={{ transform: [{ scale }] }}>
-          <PlantIllustration status={status} size={40} />
+          <PlantIllustration status={status} size={56} />
         </Animated.View>
 
-        <View style={styles.info}>
-          <Text style={styles.name}>{person.name}</Text>
-          <View style={styles.statusRow}>
-            <View style={[styles.dot, { backgroundColor: color }]} />
-            <Text style={[styles.statusText, { color }]}>
-              {PLANT_STATUS_LABEL[status]} · {daysLabel}
-            </Text>
-          </View>
+        <Text style={styles.name} numberOfLines={1}>
+          {person.name}
+        </Text>
+
+        <View style={styles.statusRow}>
+          <View style={[styles.dot, { backgroundColor: color }]} />
+          <Text style={[styles.statusText, { color }]} numberOfLines={1}>
+            {PLANT_STATUS_LABEL[status]}
+          </Text>
         </View>
+        <Text style={styles.daysText}>{daysLabel}</Text>
       </Pressable>
 
       <Pressable style={styles.button} onPress={() => onMarkDone(person.id)}>
@@ -81,55 +83,53 @@ export function PersonCard({
 function makeStyles(theme: Theme) {
   return StyleSheet.create({
     card: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flex: 1,
       backgroundColor: theme.cardBackground,
-      borderRadius: 12,
-      padding: 14,
-      marginHorizontal: 16,
-      marginVertical: 6,
-      borderLeftWidth: 6,
+      borderRadius: 14,
+      borderWidth: 2,
+      padding: 12,
       shadowColor: '#000',
       shadowOpacity: theme.scheme === 'dark' ? 0.3 : 0.06,
       shadowRadius: 4,
       shadowOffset: { width: 0, height: 2 },
       elevation: 2,
     },
-    infoRow: {
-      flex: 1,
-      flexDirection: 'row',
+    infoArea: {
       alignItems: 'center',
     },
-    info: {
-      flex: 1,
-      marginLeft: 12,
-    },
     name: {
-      fontSize: 16,
+      fontSize: 15,
       fontWeight: '600',
       color: theme.textPrimary,
+      marginTop: 8,
+      maxWidth: '100%',
     },
     statusRow: {
       flexDirection: 'row',
       alignItems: 'center',
       marginTop: 4,
+      maxWidth: '100%',
     },
     dot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      marginRight: 6,
+      width: 7,
+      height: 7,
+      borderRadius: 3.5,
+      marginRight: 5,
     },
     statusText: {
-      fontSize: 13,
+      fontSize: 12,
       fontWeight: '500',
+    },
+    daysText: {
+      fontSize: 11,
+      color: theme.textSecondary,
+      marginTop: 2,
     },
     button: {
       backgroundColor: theme.accentSubtleBackground,
       paddingVertical: 8,
-      paddingHorizontal: 10,
       borderRadius: 8,
-      marginLeft: 8,
+      marginTop: 10,
     },
     buttonText: {
       color: theme.accentSubtleText,

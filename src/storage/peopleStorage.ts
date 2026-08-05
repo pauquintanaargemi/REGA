@@ -21,15 +21,29 @@ export async function savePeople(people: Person[]): Promise<void> {
 export async function addPerson(
   people: Person[],
   name: string,
-  frequencyDays: number
+  frequencyDays: number,
+  notes?: string
 ): Promise<Person[]> {
   const newPerson: Person = {
     id: Date.now().toString(),
     name,
     frequencyDays,
     lastContactDate: todayISODate(),
+    notes: notes || undefined,
   };
   const updated = [...people, newPerson];
+  await savePeople(updated);
+  return updated;
+}
+
+export async function setPersonLastContactDate(
+  people: Person[],
+  id: string,
+  date: string
+): Promise<Person[]> {
+  const updated = people.map((p) =>
+    p.id === id ? { ...p, lastContactDate: date } : p
+  );
   await savePeople(updated);
   return updated;
 }
@@ -38,20 +52,17 @@ export async function markPersonContactedToday(
   people: Person[],
   id: string
 ): Promise<Person[]> {
-  const today = todayISODate();
-  const updated = people.map((p) =>
-    p.id === id ? { ...p, lastContactDate: today } : p
-  );
-  await savePeople(updated);
-  return updated;
+  return setPersonLastContactDate(people, id, todayISODate());
 }
 
 export async function updatePerson(
   people: Person[],
   id: string,
-  changes: { name: string; frequencyDays: number }
+  changes: { name: string; frequencyDays: number; notes?: string }
 ): Promise<Person[]> {
-  const updated = people.map((p) => (p.id === id ? { ...p, ...changes } : p));
+  const updated = people.map((p) =>
+    p.id === id ? { ...p, ...changes, notes: changes.notes || undefined } : p
+  );
   await savePeople(updated);
   return updated;
 }
